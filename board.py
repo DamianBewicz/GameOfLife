@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from utils import create_list_of_lists
 
 
@@ -7,8 +7,8 @@ class OutOfBoardException(Exception):
 
 
 class Board:
-    def __init__(self, rows: int = None, columns: int = None, ) -> None:
-        self.__board = create_list_of_lists(rows, columns)
+    def __init__(self,  rows: Optional[int] = None, columns: Optional[int] = None, filename: Optional[str] = None) -> None:
+        self.__board = Board.from_string(filename) if filename is not None else create_list_of_lists(y=rows, x=columns)
 
     def __str__(self) -> str:
         str_ = ""
@@ -31,8 +31,8 @@ class Board:
         return (
             x < 0
             or y < 0
-            or y > self.columns -1
-            or x > self.rows - 1
+            or y > self.rows - 1
+            or x > self.columns - 1
         )
 
     def get(self, x: int, y: int) -> int:
@@ -46,19 +46,12 @@ class Board:
         self.__board[y][x] = value
 
     @staticmethod
-    def from_string() -> List[List[int]]:
-        try:
-            file_name = input("\nPodaj nazwę pliku\n")
-            if Board.is_format_correct(file_name):
-                with open(file_name, "r") as f:
-                    return [[
-                        int(digit) for digit in line.strip('\n')]
-                        for line in f
-                    ]
-            else:
-                print("Niepoprawny format pliku!")
-        except FileNotFoundError:
-            print("\nTaki plik nie istnieje\n")
+    def from_string(path) -> List[List[int]]:
+        with open(path, "r") as f:
+            return [[
+                int(digit) for digit in line.strip('\n')]
+                for line in f
+            ]
 
     @staticmethod
     def is_format_correct(file_path: str) -> bool:
@@ -73,5 +66,49 @@ class Board:
                         for cell in row.strip())):
                     return False
                 return True
-        except ValueError:
+        except (ValueError, FileNotFoundError):
+            print("\nNiepoprawny format pliku lub nazwa pliku!\n")
             return False
+
+    @staticmethod
+    def ask_for_columns() -> int:
+        while True:
+            try:
+                choice = int(input("\nPodaj ilość kolumn\n"))
+                return choice
+            except ValueError:
+                print("To nie jest liczba!\n"
+                      "Podaj prawidłową liczbę")
+
+    @staticmethod
+    def ask_for_rows() -> int:
+        while True:
+            try:
+                choice = int(input("\nPodaj ilość rzędów\n"))
+                return choice
+            except ValueError:
+                print("To nie jest liczba!\n"
+                      "Podaj prawidłową liczbę")
+
+    @staticmethod
+    def choose():
+        options = {
+            "1": "Wczytaj z pliku",
+            "2": "Stwórz tablicę losową"
+        }
+        while True:
+            board = None
+            for number, choice in options.items():
+                print(number, choice)
+            choice = input("\nPodaj swój wybór\n")
+            if choice == "1":
+                file_name = input("\nPodaj nazwę pliku\n")
+                if Board.is_format_correct(file_name):
+                    return Board(filename=file_name)
+            elif choice == "2":
+                board = Board(rows=Board.ask_for_rows(), columns=Board.ask_for_columns())
+            if board:
+                break
+
+
+# print(Board.from_string("wtawfsasd"))

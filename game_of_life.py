@@ -1,15 +1,5 @@
 import os
-import pprint
-from random import randint
-from typing import List
-
 from board import Board, OutOfBoardException
-
-
-# def get_coordinates():
-#     y = input("Podaj kolumnę")
-#     x = input("Podaj wiersz")
-#     return
 
 
 class GameOfLife:
@@ -43,30 +33,21 @@ class GameOfLife:
         return number_of_neighbours
 
 
-board = Board.from_string()
-print(board)
-if board:
-    print("tak")
-else:
-    print("nie")
-# def main():
-#     board = Board(20, 20)
-#     game = GameOfLife(board)
-#     print(game.board)
-#     while True:
-#         choice = input("\nNaciśnij enter aby kontynuować"
-#                        "\nJedynke aby zmienić wartość punktu"
-#                        ", lub wpisz cokolwiek innego aby wyjść\n")
-#         if choice == "":
-#             os.system("clear")
-#             game.board_after_lifecycle()
-#             print(game.board)
-#         elif choice == "l":
-#
-#             game.load()
-#         else:
-#             break
+def main():
+    board = Board.choose()
+    game = GameOfLife(board)
+    print(game.board)
+    while True:
+        choice = input("\nNaciśnij enter aby kontynuować"
+                       "\nJedynke aby zmienić wartość punktu,"
+                       "\nlub wpisz cokolwiek innego aby wyjść\n")
+        if choice == "":
+            os.system("clear")
+            game.board_after_lifecycle()
+            print(game.board)
+        if choice not in ("", 1):
+            break
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
