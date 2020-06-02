@@ -1,5 +1,8 @@
 import os
 from board import Board, OutOfBoardException
+from collections import namedtuple
+
+coordinates = namedtuple('coordinated', ['x', 'y'])
 
 
 class GameOfLife:
@@ -21,8 +24,8 @@ class GameOfLife:
 
     def check_living_neighbours_number(self, y: int, x: int) -> int:
         number_of_neighbours = 0
-        coordinates = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
-        for neighbour_x, neighbour_y in coordinates:
+        neighbors = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+        for neighbour_x, neighbour_y in neighbors:
             final_x = x + neighbour_x
             final_y = y + neighbour_y
             try:
@@ -32,20 +35,54 @@ class GameOfLife:
                 continue
         return number_of_neighbours
 
+    @staticmethod
+    def choose_coordinates():
+        while True:
+            try:
+                print("Jeśli chcesz wyjść naciśnij enter\n")
+                x = int(input("Podaj kolumne\n"))
+                if x is None:
+                    break
+                print()
+                y = int(input("Podaj wiersz\n"))
+                if y is None:
+                    break
+                return coordinates(x-1, y-1)
+            except ValueError:
+                print("Podana wartość jest nieprawidłowa! Spróbuj jeszcze raz\n")
+
 
 def main():
-    board = Board.choose()
+    board = Board(20, 20)
     game = GameOfLife(board)
     print(game.board)
     while True:
         choice = input("\nNaciśnij enter aby kontynuować"
                        "\nJedynke aby zmienić wartość punktu,"
+                       "\nl, aby wczytać z pliku"
                        "\nlub wpisz cokolwiek innego aby wyjść\n")
         if choice == "":
             os.system("clear")
             game.board_after_lifecycle()
             print(game.board)
-        if choice not in ("", 1):
+        elif choice == "l":
+            filename = input("Podaj nazwę pliku: ")
+            try:
+                with open(filename) as f:
+                    board_string = ''.join(f.readlines())
+                    board = Board.from_string(board_string)
+                    game = GameOfLife(board)
+            except FileNotFoundError:
+                print(f'Plik o nazwie "{filename}" nie istnieje.')
+        elif choice == "1":
+            try:
+                coordinates = game.choose_coordinates()
+                value = game.board.get(coordinates.x, coordinates.y)
+                game.board.set(coordinates.x, coordinates.y, 1 if value == 0 else 0)
+                print(game.board)
+            except OutOfBoardException:
+                print("Podane koordynaty nie mieszczą się w skali planszy, spróbuj jeszcze raz!\n")
+        else:
             break
 
 

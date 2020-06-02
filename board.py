@@ -6,9 +6,13 @@ class OutOfBoardException(Exception):
     pass
 
 
+class InvalidBoardFormatException(Exception):
+    pass
+
+
 class Board:
-    def __init__(self,  rows: Optional[int] = None, columns: Optional[int] = None, filename: Optional[str] = None) -> None:
-        self.__board = Board.from_string(filename) if filename is not None else create_list_of_lists(y=rows, x=columns)
+    def __init__(self,  rows: int, columns: int) -> None:
+        self.__board = create_list_of_lists(y=rows, x=columns)
 
     def __str__(self) -> str:
         str_ = ""
@@ -40,75 +44,28 @@ class Board:
             raise OutOfBoardException
         return self.__board[y][x]
 
-    def set(self, x: int, y: int, value: int) -> None:
+    def set(self, x: int, y: int, value: int = None) -> None:
         if self.is_out_of_board(x=x, y=y):
             raise OutOfBoardException
         self.__board[y][x] = value
 
     @staticmethod
-    def from_string(path) -> List[List[int]]:
-        with open(path, "r") as f:
-            return [[
-                int(digit) for digit in line.strip('\n')]
-                for line in f
-            ]
+    def from_string(string: str) -> 'Board':
+        string = string.strip()
+        rows = string.split('\n')
+        height = len(rows)
+        width = len(rows[0])
+        if width == 0 or height == 0:
+            reason = 'width' if width == 0 else 'height'
+            raise InvalidBoardFormatException(f'{reason} cannot be 0')
+        board = Board(rows=height, columns=width)
+        for y, row in enumerate(rows):
+            if len(row) != width:
+                raise InvalidBoardFormatException(f'Row {y} has different width')
+            for x, cell in enumerate(row.replace(' ', '')):
+                board.set(x=x, y=y, value=int(cell))
+        return board
 
-    @staticmethod
-    def is_format_correct(file_path: str) -> bool:
-        try:
-            with open(file_path, "r") as f:
-                board = [line.strip() for line in f.readlines()]
-                row_len = len(board[0])
-                if any(len(row) != row_len for row in board):
-                    return False
-                if any((int(cell) not in (0, 1)
-                        for row in board
-                        for cell in row.strip())):
-                    return False
-                return True
-        except (ValueError, FileNotFoundError):
-            print("\nNiepoprawny format pliku lub nazwa pliku!\n")
-            return False
-
-    @staticmethod
-    def ask_for_columns() -> int:
-        while True:
-            try:
-                choice = int(input("\nPodaj ilość kolumn\n"))
-                return choice
-            except ValueError:
-                print("To nie jest liczba!\n"
-                      "Podaj prawidłową liczbę")
-
-    @staticmethod
-    def ask_for_rows() -> int:
-        while True:
-            try:
-                choice = int(input("\nPodaj ilość rzędów\n"))
-                return choice
-            except ValueError:
-                print("To nie jest liczba!\n"
-                      "Podaj prawidłową liczbę")
-
-    @staticmethod
-    def choose():
-        options = {
-            "1": "Wczytaj z pliku",
-            "2": "Stwórz tablicę losową"
-        }
-        while True:
-            board = None
-            for number, choice in options.items():
-                print(number, choice)
-            choice = input("\nPodaj swój wybór\n")
-            if choice == "1":
-                file_name = input("\nPodaj nazwę pliku\n")
-                if Board.is_format_correct(file_name):
-                    return Board(filename=file_name)
-            elif choice == "2":
-                board = Board(rows=Board.ask_for_rows(), columns=Board.ask_for_columns())
-            if board:
-                break
 
 
 # print(Board.from_string("wtawfsasd"))
